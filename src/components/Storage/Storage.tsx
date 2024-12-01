@@ -94,6 +94,7 @@ export const Storage: React.FC<Props> = ({ id, storage }) => {
     }, [deleteStorageThunk.status])
 
     useEffect(() => {
+        console.log(updateStorageThunk.status, updateStorageThunk.error)
         if (updateStorageThunk.status === 'succeeded') {
             dispatch(restoreThunk('updateStorage'))
 

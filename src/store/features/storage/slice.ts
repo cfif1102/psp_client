@@ -8,6 +8,7 @@ import {
     findUserStorages,
     updateStorage,
 } from './thunks'
+import { File } from '@app-types/file.types'
 
 interface State {
     storages: Storage[]
@@ -37,6 +38,91 @@ export const storageSlice = createSlice({
     name: 'storage',
     initialState: state,
     reducers: {
+        addStorageFile(state, action: PayloadAction<File>) {
+            if (!state.storage) {
+                return
+            }
+
+            state.storage.files.push(action.payload)
+
+            state.storages = state.storages.map((st) =>
+                st.id === state.storage?.id
+                    ? { ...st, files: [...st.files, action.payload] }
+                    : st
+            )
+
+            state.userStorages = state.userStorages.map((st) =>
+                st.id === state.storage?.id
+                    ? { ...st, files: [...st.files, action.payload] }
+                    : st
+            )
+        },
+        removeStorageFile(state, action: PayloadAction<number>) {
+            if (!state.storage) {
+                return
+            }
+
+            state.storage.files = state.storage.files.filter(
+                (file) => file.id !== action.payload
+            )
+
+            state.storages = state.storages.map((st) =>
+                st.id === state.storage?.id
+                    ? {
+                          ...st,
+                          files: st.files.filter(
+                              (file) => file.id !== action.payload
+                          ),
+                      }
+                    : st
+            )
+
+            state.userStorages = state.userStorages.map((st) =>
+                st.id === state.storage?.id
+                    ? {
+                          ...st,
+                          files: st.files.filter(
+                              (file) => file.id !== action.payload
+                          ),
+                      }
+                    : st
+            )
+        },
+        updateStorageFile(state, action: PayloadAction<File>) {
+            if (!state.storage) {
+                return
+            }
+
+            state.storage.files = state.storage.files.map((file) =>
+                file.id === action.payload.id ? action.payload : file
+            )
+
+            state.storages = state.storages.map((st) =>
+                st.id === state.storage?.id
+                    ? {
+                          ...st,
+                          files: st.files.map((file) =>
+                              file.id === action.payload.id
+                                  ? action.payload
+                                  : file
+                          ),
+                      }
+                    : st
+            )
+
+            state.userStorages = state.userStorages.map((st) =>
+                st.id === state.storage?.id
+                    ? {
+                          ...st,
+                          files: st.files.map((file) =>
+                              file.id === action.payload.id
+                                  ? action.payload
+                                  : file
+                          ),
+                      }
+                    : st
+            )
+        },
         setName(state, action: PayloadAction<string>) {
             state.name = action.payload
         },
@@ -75,6 +161,18 @@ export const storageSlice = createSlice({
             })
             .addCase(updateStorage.fulfilled, (state, action) => {
                 state.updateStorage.status = 'succeeded'
+
+                const storage = action.payload
+
+                state.storage = storage
+
+                state.storages = state.storages.map((st) =>
+                    st.id === storage.id ? storage : st
+                )
+
+                state.userStorages = state.userStorages.map((st) =>
+                    st.id === storage.id ? storage : st
+                )
             })
             .addCase(updateStorage.rejected, (state, action) => {
                 state.updateStorage.status = 'rejected'
@@ -124,4 +222,11 @@ export const storageSlice = createSlice({
     },
 })
 
-export const { setName, setStorage, restoreThunk } = storageSlice.actions
+export const {
+    setName,
+    setStorage,
+    restoreThunk,
+    addStorageFile,
+    updateStorageFile,
+    removeStorageFile,
+} = storageSlice.actions
